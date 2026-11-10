@@ -152,3 +152,26 @@ def test_m5_loader_with_standin_files(tmp_path):
     sales, master = load_m5(tmp_path, "CA_1")
     assert set(sales["sku"]) == {"A", "B"} and sales["qty"].sum() == 6  # CA_1 only: A=2+1, B=3; the TX_1 row is excluded
     assert master.loc["A", "unit_cost"] == pytest.approx(1.4)
+
+
+# ---------------------------------------------------------------- messy-header regressions
+def test_mapping_handles_sap_style_headers_and_currency_suffix():
+    from fid.schema import SKU_ALIASES
+    m = suggest_mapping(["Item Code", "Posting Date", "Mvmt Type", "Qty Moved"], MOVEMENT_ALIASES)
+    assert m == {"sku": "Item Code", "date": "Posting Date", "kind": "Mvmt Type", "qty": "Qty Moved"}
+    s = suggest_mapping(["Item Code", "Std Cost (INR)", "Stock On Hand"], SKU_ALIASES)
+    assert s["unit_cost"] == "Std Cost (INR)" and s["on_hand_qty"] == "Stock On Hand"
+
+
+def test_goods_issue_code_recognised():
+    rec, iss = guess_kind_values(["GRN", "GI", "Goods Issue"])
+    assert rec == ["GRN"] and set(iss) == {"GI", "Goods Issue"}
+
+
+def test_sku_ids_are_case_and_space_insensitive():
+    raw = pd.DataFrame({"sku": ["ab-1", " AB-1 ", "Ab-1"], "date": ["2025-01-01", "2025-01-02", "2025-01-03"],
+                        "type": ["receipt", "issue", "issue"], "qty": [10, 1, 2]})
+    mv, rep = standardize_movements(raw, {"sku": "sku", "date": "date", "kind": "type", "qty": "qty"})
+    assert rep["n_skus"] == 1 and set(mv["sku"]) == {"AB-1"}
+    sk = standardize_skus(pd.DataFrame({"sku": ["ab-1"], "successor_sku": ["ab-2 "]}))
+    assert list(sk.index) == ["AB-1"] and sk.loc["AB-1", "successor_sku"] == "AB-2"
