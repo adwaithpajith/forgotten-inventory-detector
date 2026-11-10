@@ -1,0 +1,4 @@
+sku,description,category,unit_cost,shelf_life_days,volume_per_unit,location,on_hand_qty,successor_sku
+A-1001,Hex bolt M8 (box of 100),Fasteners,240,,0.002,A-03-2,107,
+A-1002,Cable tie 200mm,Electrical,85,,0.001,B-11-4,46,
+B-2040,Adhesive 5L,Chemicals,1450,365,0.006,C-02-1,440,B-2041

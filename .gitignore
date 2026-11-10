@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.DS_Store
+.ipynb_checkpoints/
+.streamlit/secrets.toml
+# large or licensed real-data downloads (regenerate with scripts/prepare_real_demand.py)
+data/real/
+data/raw/
+*.xlsx.bak

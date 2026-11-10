@@ -1,0 +1,185 @@
+{
+  "source": "synthetic",
+  "n_skus": 10000,
+  "as_of": "2026-10-31",
+  "seed": 21,
+  "n_evaluated": 9593,
+  "accuracy_6class": 0.8688627123944543,
+  "dead": {
+    "engine": {
+      "precision": 0.8212106992022524,
+      "recall": 1.0,
+      "f1": 0.9018294254058232,
+      "tp": 1750,
+      "fp": 381,
+      "fn": 0
+    },
+    "naive": {
+      "precision": 0.7583296312749889,
+      "recall": 0.9754285714285714,
+      "f1": 0.8532866783304174,
+      "tp": 1707,
+      "fp": 544,
+      "fn": 43
+    },
+    "naive_same_idle": {
+      "precision": 0.6084840055632823,
+      "recall": 1.0,
+      "f1": 0.7565931690445309,
+      "tp": 1750,
+      "fp": 1126,
+      "fn": 0
+    }
+  },
+  "per_class": {
+    "active": {
+      "support": 4717,
+      "precision": 0.933,
+      "recall": 0.9307,
+      "f1": 0.9319
+    },
+    "seasonal": {
+      "support": 886,
+      "precision": 0.9519,
+      "recall": 0.5801,
+      "f1": 0.7209
+    },
+    "slow_moving": {
+      "support": 1429,
+      "precision": 0.8516,
+      "recall": 0.8712,
+      "f1": 0.8613
+    },
+    "temporarily_inactive": {
+      "support": 811,
+      "precision": 0.6861,
+      "recall": 0.6387,
+      "f1": 0.6616
+    },
+    "forgotten": {
+      "support": 1028,
+      "precision": 0.6974,
+      "recall": 0.9864,
+      "f1": 0.8171
+    },
+    "obsolete": {
+      "support": 722,
+      "precision": 0.966,
+      "recall": 0.9058,
+      "f1": 0.935
+    }
+  },
+  "outcomes": {
+    "engine_dead": {
+      "flagged": 2131,
+      "picked_again_in_future": 359,
+      "share_picked_again": 0.16846550915063352
+    },
+    "naive": {
+      "flagged": 2251,
+      "picked_again_in_future": 413,
+      "share_picked_again": 0.18347401155042203
+    }
+  },
+  "seasonal_false_alarms": {
+    "engine": 7,
+    "naive": 113,
+    "n_seasonal": 886
+  },
+  "lead_time": {
+    "n": 789,
+    "engine": {
+      "detected": 789,
+      "share": 1.0,
+      "median_days": 64.0,
+      "p90_days": 71.0
+    },
+    "naive": {
+      "detected": 750,
+      "share": 0.9505703422053232,
+      "median_days": 93.0,
+      "p90_days": 101.0
+    },
+    "naive_same_idle": {
+      "detected": 789,
+      "share": 1.0,
+      "median_days": 64.0,
+      "p90_days": 71.0
+    },
+    "step_days": 15
+  },
+  "backtest": [
+    {
+      "group": "Engine: forgotten + obsolete",
+      "n_skus": 1452,
+      "stayed_dormant_pct": 94.01,
+      "picked_again_pct": 5.99,
+      "capital_tied": 89899532.22
+    },
+    {
+      "group": "Engine: forgotten",
+      "n_skus": 850,
+      "stayed_dormant_pct": 90.94,
+      "picked_again_pct": 9.06,
+      "capital_tied": 59211329.43
+    },
+    {
+      "group": "Engine: obsolete",
+      "n_skus": 602,
+      "stayed_dormant_pct": 98.34,
+      "picked_again_pct": 1.66,
+      "capital_tied": 30688202.79
+    },
+    {
+      "group": "Engine: watch",
+      "n_skus": 403,
+      "stayed_dormant_pct": 57.82,
+      "picked_again_pct": 42.18,
+      "capital_tied": 16572703.7
+    },
+    {
+      "group": "Engine: seasonal",
+      "n_skus": 577,
+      "stayed_dormant_pct": 10.4,
+      "picked_again_pct": 89.6,
+      "capital_tied": 32233046.69
+    },
+    {
+      "group": "Engine: slow-moving",
+      "n_skus": 1505,
+      "stayed_dormant_pct": 27.11,
+      "picked_again_pct": 72.89,
+      "capital_tied": 20630666.17
+    },
+    {
+      "group": "Engine: active",
+      "n_skus": 5593,
+      "stayed_dormant_pct": 2.09,
+      "picked_again_pct": 97.91,
+      "capital_tied": 402719102.02
+    },
+    {
+      "group": "Naive rule: no pick in 90 days",
+      "n_skus": 1613,
+      "stayed_dormant_pct": 76.57,
+      "picked_again_pct": 23.43,
+      "capital_tied": 83530179.57
+    },
+    {
+      "group": "All judged SKUs",
+      "n_skus": 9530,
+      "stayed_dormant_pct": 22.91,
+      "picked_again_pct": 77.09,
+      "capital_tied": 562055050.8
+    }
+  ],
+  "ml": {
+    "ml_accuracy": 0.9778354978354978,
+    "ml_macro_f1": 0.9645310673829831,
+    "engine_accuracy": 0.8642424242424243,
+    "engine_macro_f1": 0.811428068799234,
+    "ml_dead_f1": 0.9888776541961577,
+    "engine_dead_f1": 0.8945224083295609,
+    "n_test": 5775
+  }
+}
