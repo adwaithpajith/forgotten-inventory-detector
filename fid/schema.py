@@ -26,17 +26,17 @@ MOVEMENT_ALIASES: Dict[str, List[str]] = {
     "date": ["date", "timestamp", "datetime", "invoicedate", "invoice_date", "posting_date",
              "transaction_date", "movement_date", "txn_date", "created_at", "time"],
     "kind": ["kind", "type", "event", "event_type", "movement_type", "transaction_type",
-             "txn_type", "direction", "movement"],
-    "qty": ["qty", "quantity", "units", "amount", "qty_moved", "quantity_moved"],
+             "txn_type", "direction", "movement", "mvmt_type", "mvt_type", "movement_code", "mvmt_code"],
+    "qty": ["qty", "quantity", "units", "amount", "qty_moved", "quantity_moved", "moved_qty"],
 }
 
 SKU_ALIASES: Dict[str, List[str]] = {
     "sku": MOVEMENT_ALIASES["sku"],
     "description": ["description", "name", "item_name", "product_name", "desc", "title"],
     "category": ["category", "family", "product_group", "class", "dept", "department", "group", "cat"],
-    "unit_cost": ["unit_cost", "cost", "unitcost", "cost_price", "standard_cost", "std_cost", "price"],
+    "unit_cost": ["unit_cost", "cost", "unitcost", "cost_price", "standard_cost", "std_cost", "price", "unit_price"],
     "on_hand_qty": ["on_hand_qty", "on_hand", "onhand", "stock", "stock_qty", "qty_on_hand",
-                    "quantity_on_hand", "current_stock"],
+                    "quantity_on_hand", "current_stock", "stock_on_hand", "soh"],
     "shelf_life_days": ["shelf_life_days", "shelf_life", "shelflife", "expiry_days", "life_days"],
     "volume_per_unit": ["volume_per_unit", "volume", "unit_volume", "cbm", "m3", "space_per_unit"],
     "location": ["location", "bin", "slot", "shelf", "bin_location", "storage_location", "bin_id"],
@@ -45,9 +45,9 @@ SKU_ALIASES: Dict[str, List[str]] = {
 }
 
 RECEIPT_WORDS = {"receipt", "receive", "received", "receiving", "inbound", "in", "purchase", "grn",
-                 "putaway", "put_away", "goods_in", "po_receipt", "replenishment", "r", "+"}
+                 "putaway", "put_away", "goods_in", "po_receipt", "replenishment", "goods_receipt", "r", "+"}
 ISSUE_WORDS = {"issue", "issued", "pick", "picked", "picking", "outbound", "out", "sale", "sold",
-               "sales", "dispatch", "dispatched", "shipped", "ship", "shipment", "goods_out", "consumption", "i", "-"}
+               "sales", "dispatch", "dispatched", "shipped", "ship", "shipment", "goods_out", "goods_issue", "gi", "consumption", "i", "-"}
 
 SKU_COLUMNS = ["description", "category", "unit_cost", "shelf_life_days", "volume_per_unit",
                "location", "on_hand_qty", "first_receipt_date", "successor_sku"]
@@ -57,11 +57,21 @@ def _norm(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", str(name).strip().lower()).strip("_")
 
 
+_CURRENCY_SUFFIX = re.compile(r"_(inr|usd|eur|gbp|aud|cad|jpy|cny|rs)$")
+
+
+def _norm_col(name: str) -> str:
+    """Normalise a column header and drop a trailing currency code (``Std Cost (INR)`` -> ``std_cost``)."""
+    return _CURRENCY_SUFFIX.sub("", _norm(name))
+
+
 def suggest_mapping(columns: Iterable[str], aliases: Dict[str, List[str]]) -> Dict[str, Optional[str]]:
     """Guess which raw column maps to each standard field (case/spacing insensitive)."""
     by_norm = {}
     for c in columns:
         by_norm.setdefault(_norm(c), c)
+    for c in columns:
+        by_norm.setdefault(_norm_col(c), c)
     out: Dict[str, Optional[str]] = {}
     used = set()
     for field, names in aliases.items():
@@ -111,7 +121,7 @@ def standardize_movements(
         if not mapping.get(need) or mapping[need] not in raw.columns:
             raise ValueError(f"Missing required column mapping for '{need}'.")
     df = pd.DataFrame({
-        "sku": raw[mapping["sku"]].astype(str).str.strip(),
+        "sku": raw[mapping["sku"]].astype(str).str.strip().str.upper(),
         "date": pd.to_datetime(raw[mapping["date"]], errors="coerce", dayfirst=dayfirst),
         "qty": pd.to_numeric(raw[mapping["qty"]], errors="coerce"),
     })
@@ -174,14 +184,14 @@ def standardize_skus(raw: Optional[pd.DataFrame], mapping: Optional[Dict[str, Op
     mapping = mapping or suggest_mapping(raw.columns, SKU_ALIASES)
     if not mapping.get("sku") or mapping["sku"] not in raw.columns:
         raise ValueError("SKU master needs a column mapped to 'sku'.")
-    out = pd.DataFrame({"sku": raw[mapping["sku"]].astype(str).str.strip()})
+    out = pd.DataFrame({"sku": raw[mapping["sku"]].astype(str).str.strip().str.upper()})
     for col in SKU_COLUMNS:
         src = mapping.get(col)
         out[col] = raw[src].to_numpy() if src and src in raw.columns else np.nan
     for col in ("unit_cost", "shelf_life_days", "volume_per_unit", "on_hand_qty"):
         out[col] = pd.to_numeric(out[col], errors="coerce")
     out["first_receipt_date"] = pd.to_datetime(out["first_receipt_date"], errors="coerce").dt.normalize()
-    out["successor_sku"] = out["successor_sku"].map(lambda v: str(v).strip() if pd.notna(v) and str(v).strip() else np.nan)
+    out["successor_sku"] = out["successor_sku"].map(lambda v: str(v).strip().upper() if pd.notna(v) and str(v).strip() else np.nan)
     out = out.drop_duplicates("sku", keep="last").set_index("sku")
     return out
 
