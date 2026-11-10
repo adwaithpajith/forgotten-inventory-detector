@@ -1,4 +1,4 @@
-# 📦 Forgotten Inventory Detector
+#  Forgotten Inventory Detector
 
 **Find stock that is quietly going dead, and tell it apart from stock that is only paused, seasonal or slow.**
 
