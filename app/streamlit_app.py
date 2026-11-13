@@ -1,4 +1,4 @@
-"""Forgotten Warehouse Inventory Detector: Streamlit app.
+"""Dead Stock Detector: Streamlit app.
 
 Run locally:  streamlit run app/streamlit_app.py
 """
@@ -25,7 +25,7 @@ from fid.schema import (MOVEMENT_ALIASES, SKU_ALIASES, SKU_COLUMNS, guess_kind_v
                         standardize_skus, suggest_mapping)
 from fid.simulate import make_warehouse
 
-st.set_page_config(page_title="Forgotten Inventory Detector", page_icon="📦", layout="wide")
+st.set_page_config(page_title="Dead Stock Detector", page_icon="📦", layout="wide")
 
 ORDER = ["forgotten", "obsolete", "temporarily_inactive", "slow_moving", "seasonal", "active",
          STATUS_OUT_OF_STOCK, STATUS_INSUFFICIENT]
@@ -71,7 +71,7 @@ def template_bytes(name: str) -> bytes:
 
 
 # --------------------------------------------------------------------------- header
-st.title("📦 Forgotten Inventory Detector")
+st.title(" Dead Stock Detector")
 st.caption("Find stock that is quietly going dead, and tell it apart from stock that is only paused, seasonal or slow.")
 
 # --------------------------------------------------------------------------- data source
