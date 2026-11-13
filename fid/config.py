@@ -1,4 +1,4 @@
-"""Configuration and shared constants for the Forgotten Inventory Detector."""
+"""Configuration and shared constants for the Dead Stock Detector."""
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
