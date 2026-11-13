@@ -1,4 +1,4 @@
-#  Forgotten Inventory Detector
+#  Dead Stock Detector
 
 **Find stock that is quietly going dead, and tell it apart from stock that is only paused, seasonal or slow.**
 
@@ -26,7 +26,7 @@ It also flags **items that are still being re-ordered while idle** (stop purchas
 ## Try it
 
 ```bash
-git clone <your-repo-url> && cd forgotten-inventory-detector
+git clone <your-repo-url> && cd dead-stock-detector
 pip install -r requirements.txt
 streamlit run app/streamlit_app.py
 ```
