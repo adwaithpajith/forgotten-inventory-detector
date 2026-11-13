@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
 import streamlit as st
 from plotly.subplots import make_subplots
 
@@ -25,13 +26,109 @@ from fid.schema import (MOVEMENT_ALIASES, SKU_ALIASES, SKU_COLUMNS, guess_kind_v
                         standardize_skus, suggest_mapping)
 from fid.simulate import make_warehouse
 
-st.set_page_config(page_title="Dead Stock Detector", page_icon="📦", layout="wide")
+st.set_page_config(page_title="Dead Stock Detector", page_icon="🦇", layout="wide")
 
 ORDER = ["forgotten", "obsolete", "temporarily_inactive", "slow_moving", "seasonal", "active",
          STATUS_OUT_OF_STOCK, STATUS_INSUFFICIENT]
 NONE = "(none)"
 TEMPLATES = ROOT / "templates"
 
+
+
+# --------------------------------------------------------------------------- theme
+ACCENT = "#FFC400"
+pio.templates["dsd"] = go.layout.Template(layout=go.Layout(
+    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(17,21,27,0.6)",
+    font=dict(family="Rajdhani, Segoe UI, sans-serif", color="#E4E7EB", size=14),
+    colorway=[ACCENT, "#2EC4B6", "#5B8DEF", "#FF8C1A", "#FF3B4E", "#A23B72"],
+    xaxis=dict(gridcolor="#1E252E", zerolinecolor="#2A323D", linecolor="#2A323D"),
+    yaxis=dict(gridcolor="#1E252E", zerolinecolor="#2A323D", linecolor="#2A323D"),
+    title=dict(font=dict(family="Orbitron, Rajdhani, sans-serif", size=15, color=ACCENT)),
+    legend=dict(bgcolor="rgba(0,0,0,0)"),
+    hoverlabel=dict(bgcolor="#0B0D10", bordercolor=ACCENT, font=dict(color="#E4E7EB")),
+))
+pio.templates.default = "dsd"
+
+THEME_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+html, body, [class*="css"], .stApp { font-family: 'Rajdhani', 'Segoe UI', sans-serif; font-size: 1.05rem; }
+.stApp {
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(255,196,0,0.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(255,196,0,0.05), transparent 60%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.012) 0 2px, transparent 2px 14px),
+    #07090C;
+}
+header[data-testid="stHeader"] { background: transparent; }
+.block-container { padding-top: 1.6rem; max-width: 1400px; }
+
+/* hero */
+.dsd-hero {
+  position: relative; padding: 1.5rem 2rem 1.3rem 2rem; margin-bottom: 1.2rem;
+  background: linear-gradient(110deg, #11151B 0%, #0B0E12 70%);
+  border: 1px solid #2A323D; border-left: 6px solid #FFC400;
+  clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 28px 100%, 0 calc(100% - 28px));
+  box-shadow: 0 0 40px rgba(255,196,0,0.08);
+}
+.dsd-hero:before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 4px);
+}
+.dsd-tag { font-family: 'Orbitron', sans-serif; font-size: .72rem; letter-spacing: .35em; color: #FFC400; opacity: .9; }
+.dsd-title { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 2.3rem; letter-spacing: .08em;
+  margin: .2rem 0 .3rem 0; color: #F3F5F7; text-transform: uppercase; line-height: 1.15; }
+.dsd-title span { color: #FFC400; text-shadow: 0 0 18px rgba(255,196,0,0.55); }
+.dsd-sub { color: #9AA5B1; font-size: 1.1rem; letter-spacing: .03em; max-width: 60rem; }
+.dsd-status { position: absolute; top: 1rem; right: 2.6rem; font-family: 'Orbitron', sans-serif; font-size: .68rem;
+  letter-spacing: .25em; color: #2EC4B6; }
+.dsd-status:before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: #2EC4B6; margin-right: .6rem; box-shadow: 0 0 10px #2EC4B6; animation: dsdpulse 1.8s infinite; }
+@keyframes dsdpulse { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
+
+/* headings */
+h1, h2, h3 { font-family: 'Orbitron', sans-serif !important; letter-spacing: .05em; }
+h2, h3 { color: #F3F5F7; }
+h2:after, h3:after { content: ""; display: block; width: 56px; height: 3px; margin-top: .35rem; background: #FFC400; }
+
+/* metric cards */
+div[data-testid="stMetric"] {
+  background: linear-gradient(160deg, #141920, #0C0F13); border: 1px solid #2A323D !important;
+  border-top: 3px solid #FFC400 !important; border-radius: 2px !important; padding: .9rem 1rem !important;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+}
+div[data-testid="stMetricLabel"] p { font-family: 'Orbitron', sans-serif; font-size: .7rem !important;
+  letter-spacing: .18em; text-transform: uppercase; color: #9AA5B1; }
+div[data-testid="stMetricValue"] { font-family: 'Orbitron', sans-serif; font-weight: 700; color: #F3F5F7; }
+
+/* tabs */
+button[data-baseweb="tab"] { font-family: 'Orbitron', sans-serif; font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; }
+button[data-baseweb="tab"][aria-selected="true"] { color: #FFC400; }
+div[data-baseweb="tab-highlight"] { background-color: #FFC400 !important; height: 3px !important; }
+
+/* buttons */
+.stButton > button, .stDownloadButton > button {
+  font-family: 'Orbitron', sans-serif; letter-spacing: .12em; text-transform: uppercase; font-size: .75rem;
+  background: #11151B; color: #FFC400; border: 1px solid #FFC400; border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  transition: all .15s ease;
+}
+.stButton > button:hover, .stDownloadButton > button:hover { background: #FFC400; color: #07090C; box-shadow: 0 0 18px rgba(255,196,0,.45); }
+.stButton > button[kind="primary"] { background: #FFC400; color: #07090C; }
+
+/* sidebar */
+section[data-testid="stSidebar"] { background: #0B0E12; border-right: 1px solid #2A323D; }
+section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 { font-size: 1rem; color: #FFC400; }
+
+/* tables, inputs, alerts */
+div[data-testid="stDataFrame"] { border: 1px solid #2A323D; }
+div[data-testid="stAlert"] { border-radius: 0; border-left: 4px solid #FFC400; background: #11151B; }
+details { border: 1px solid #2A323D !important; border-radius: 0 !important; background: #0E1217; }
+::-webkit-scrollbar { width: 10px; height: 10px; } ::-webkit-scrollbar-thumb { background: #2A323D; }
+::-webkit-scrollbar-thumb:hover { background: #FFC400; }
+</style>
+"""
+st.markdown(THEME_CSS, unsafe_allow_html=True)
 
 # --------------------------------------------------------------------------- cached work
 @st.cache_data(show_spinner="Building a simulated warehouse …")
@@ -71,8 +168,17 @@ def template_bytes(name: str) -> bytes:
 
 
 # --------------------------------------------------------------------------- header
-st.title(" Dead Stock Detector")
-st.caption("Find stock that is quietly going dead, and tell it apart from stock that is only paused, seasonal or slow.")
+st.markdown(
+    """
+<div class="dsd-hero">
+  <div class="dsd-status">SYSTEM ONLINE</div>
+  <div class="dsd-tag">INVENTORY INTELLIGENCE // WAREHOUSE SURVEILLANCE</div>
+  <div class="dsd-title">Dead Stock <span>Detector</span></div>
+  <div class="dsd-sub">Find stock that is quietly going dead, and tell it apart from stock that is only paused, seasonal or slow.</div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
 
 # --------------------------------------------------------------------------- data source
 with st.sidebar:
