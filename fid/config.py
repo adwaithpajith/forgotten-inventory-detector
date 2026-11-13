@@ -33,14 +33,14 @@ CLASS_LABELS = {
 }
 
 CLASS_COLORS = {
-    "active": "#2a9d8f",
-    "seasonal": "#4c78a8",
-    "slow_moving": "#e9c46a",
-    "temporarily_inactive": "#f4a261",
-    "forgotten": "#e63946",
-    "obsolete": "#7b2d26",
-    STATUS_OUT_OF_STOCK: "#adb5bd",
-    STATUS_INSUFFICIENT: "#ced4da",
+    "active": "#2EC4B6",
+    "seasonal": "#5B8DEF",
+    "slow_moving": "#FFC400",
+    "temporarily_inactive": "#FF8C1A",
+    "forgotten": "#FF3B4E",
+    "obsolete": "#A23B72",
+    STATUS_OUT_OF_STOCK: "#6B7480",
+    STATUS_INSUFFICIENT: "#454C56",
 }
 
 
