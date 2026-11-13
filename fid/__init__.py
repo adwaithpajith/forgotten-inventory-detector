@@ -1,4 +1,4 @@
-"""Forgotten Warehouse Inventory Detector.
+"""Dead Stock Detector.
 
 Find stock that is quietly going dead, and tell it apart from stock that is merely paused,
 seasonal or slow.
